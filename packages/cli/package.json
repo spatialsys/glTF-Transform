@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@caporal/core": "^2.0.2",
+    "@expo/spawn-async": "^1.5.0",
     "@gltf-transform/core": "^0.12.16",
     "@gltf-transform/extensions": "^0.12.16",
     "@gltf-transform/functions": "^0.12.16",
@@ -33,6 +34,7 @@
     "minimatch": "^3.0.4",
     "node-gzip": "^1.1.2",
     "semver": "^7.3.5",
+    "@supercharge/promise-pool": "^1.8.0",
     "tmp": "^0.2.1"
   },
   "files": [

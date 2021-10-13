@@ -2,9 +2,11 @@
 const fs = require('fs');
 const minimatch = require('minimatch');
 const semver = require('semver');
+const spawnAsync = require('@expo/spawn-async')
 const tmp = require('tmp');
+const PromisePool = require('@supercharge/promise-pool')
 
-import { BufferUtils, Document, FileUtils, ImageUtils, Logger, TextureChannel, Transform, vec2 } from '@gltf-transform/core';
+import { BufferUtils, Document, FileUtils, ImageUtils, Logger, TextureChannel, Texture, Transform, vec2 } from '@gltf-transform/core';
 import { TextureBasisu } from '@gltf-transform/extensions';
 import { commandExistsSync, formatBytes, getTextureChannels, getTextureSlots, spawnSync } from '../util';
 
@@ -100,7 +102,7 @@ export const UASTC_DEFAULTS = {
 export const toktx = function (options: ETC1SOptions | UASTCOptions): Transform {
 	options = {...(options.mode === Mode.ETC1S ? ETC1S_DEFAULTS : UASTC_DEFAULTS), ...options};
 
-	return (doc: Document): void =>  {
+	return async (doc: Document): Promise<void> =>  {
 		const logger = doc.getLogger();
 
 		// Confirm recent version of KTX-Software is installed.
@@ -110,9 +112,11 @@ export const toktx = function (options: ETC1SOptions | UASTCOptions): Transform 
 
 		let numCompressed = 0;
 
-		doc.getRoot()
-			.listTextures()
-			.forEach((texture, textureIndex) => {
+		await PromisePool
+			.for(Array.from(doc.getRoot().listTextures().entries()))
+			.withConcurrency(8)
+			.process(
+			async ([textureIndex, texture] : [number, Texture]) => {
 				const slots = getTextureSlots(doc, texture);
 				const channels = getTextureChannels(doc, texture);
 				const textureLabel = texture.getURI()
@@ -162,8 +166,24 @@ export const toktx = function (options: ETC1SOptions | UASTCOptions): Transform 
 				logger.debug(`• toktx ${params.join(' ')}`);
 
 				// COMPRESS: Run `toktx` CLI tool.
+				var result;
+				try {
+					const toktx = spawnAsync('toktx', params);
+					result = await toktx;
+				}
+				catch(e:unknown){
+					// The error object also has the same properties as the result object
+					result = e;
+				}
 
-				const {status, stderr} = spawnSync('toktx', params, {stdio: [process.stderr]});
+				let {
+					pid,
+					output,
+					stdout,
+					stderr,
+					status,
+					signal,
+				} = result;
 
 				if (status !== 0) {
 					logger.error(`• Texture compression failed:\n\n${stderr.toString()}`);
