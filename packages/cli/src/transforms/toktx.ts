@@ -2,11 +2,11 @@
 const fs = require('fs');
 const minimatch = require('minimatch');
 const semver = require('semver');
-const spawnAsync = require('@expo/spawn-async')
+const spawnAsync = require('@expo/spawn-async');
 const tmp = require('tmp');
-const PromisePool = require('@supercharge/promise-pool')
+const pLimit = require('p-limit');
 
-import { BufferUtils, Document, FileUtils, ImageUtils, Logger, TextureChannel, Texture, Transform, vec2 } from '@gltf-transform/core';
+import { BufferUtils, Document, FileUtils, ImageUtils, Logger, TextureChannel, Transform, vec2 } from '@gltf-transform/core';
 import { TextureBasisu } from '@gltf-transform/extensions';
 import { commandExistsSync, formatBytes, getTextureChannels, getTextureSlots, spawnSync } from '../util';
 
@@ -112,11 +112,12 @@ export const toktx = function (options: ETC1SOptions | UASTCOptions): Transform 
 
 		let numCompressed = 0;
 
-		await PromisePool
-			.for(Array.from(doc.getRoot().listTextures().entries()))
-			.withConcurrency(8)
-			.process(
-			async ([textureIndex, texture] : [number, Texture]) => {
+		const limit = pLimit(8);
+
+		const promises = doc
+			.getRoot()
+			.listTextures()
+			.map((texture, textureIndex) => limit(async () => {
 				const slots = getTextureSlots(doc, texture);
 				const channels = getTextureChannels(doc, texture);
 				const textureLabel = texture.getURI()
@@ -166,7 +167,7 @@ export const toktx = function (options: ETC1SOptions | UASTCOptions): Transform 
 				logger.debug(`• toktx ${params.join(' ')}`);
 
 				// COMPRESS: Run `toktx` CLI tool.
-				var result;
+				let result;
 				try {
 					const toktx = spawnAsync('toktx', params);
 					result = await toktx;
@@ -176,18 +177,14 @@ export const toktx = function (options: ETC1SOptions | UASTCOptions): Transform 
 					result = e;
 				}
 
-				let {
-					pid,
-					output,
-					stdout,
+				const {
 					stderr,
 					status,
-					signal,
 				} = result;
 
 				if (status !== 0) {
 					logger.error(`• Texture compression failed:\n\n${stderr.toString()}`);
-					
+
 					texture
 						.setImage(BufferUtils.trim(fs.readFileSync(inPath)))
 						.setMimeType(texture.getMimeType());
@@ -213,7 +210,9 @@ export const toktx = function (options: ETC1SOptions | UASTCOptions): Transform 
 
 				const outBytes = texture.getImage()!.byteLength;
 				logger.debug(`• ${formatBytes(inBytes)} → ${formatBytes(outBytes)} bytes.`);
-			});
+		}));
+
+		await Promise.all(promises);
 
 		if (numCompressed === 0) {
 			logger.warn('No textures were found, or none were selected for compression.');
