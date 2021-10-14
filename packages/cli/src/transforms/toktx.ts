@@ -186,7 +186,7 @@ export const toktx = function (options: ETC1SOptions | UASTCOptions): Transform 
 					logger.error(`• Texture compression failed:\n\n${stderr.toString()}`);
 
 					texture
-						.setImage(BufferUtils.trim(fs.readFileSync(inPath)))
+						.setImage(BufferUtils.trim(await fs.readFile(inPath)))
 						.setMimeType(texture.getMimeType());
 
 					if (texture.getURI()) {
@@ -196,9 +196,8 @@ export const toktx = function (options: ETC1SOptions | UASTCOptions): Transform 
 				} else {
 
 					// PACK: Replace image data in the glTF asset.
-
 					texture
-						.setImage(BufferUtils.trim(fs.readFileSync(outPath)))
+						.setImage(BufferUtils.trim(await fs.readFile(outPath)))
 						.setMimeType('image/ktx2');
 
 					if (texture.getURI()) {
