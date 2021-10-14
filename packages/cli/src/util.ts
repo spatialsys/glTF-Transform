@@ -1,26 +1,20 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const { spawnSync: _spawnSync } = require('child_process');
 const { spawnAsync: _spawnAsync } = require('@expo/spawn-async');
 
-import { sync as _commandExistsSync } from 'command-exists';
+import _commandExists from 'command-exists';
 import { Document, FileUtils, Logger, NodeIO, Texture, TextureLink, Transform } from '@gltf-transform/core';
 
 // Mock for tests.
 
-export let spawnSync = _spawnSync;
 export let spawnAsync = _spawnAsync;
-export let commandExistsSync = _commandExistsSync;
-
-export function mockSpawnSync (_spawnSync: unknown): void {
-	spawnSync = _spawnSync;
-}
+export let commandExists = _commandExists;
 
 export function mockSpawnAsync (_spawnAsync: unknown): void {
 	spawnAsync = _spawnAsync;
 }
 
-export function mockCommandExistsSync (_commandExistsSync: (n: string) => boolean): void {
-	commandExistsSync = _commandExistsSync;
+export function mockCommandExists (_commandExists: (n: string) => Promise<boolean>): void {
+	commandExists = _commandExists as any;
 }
 
 // Formatting.

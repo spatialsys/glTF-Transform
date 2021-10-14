@@ -1,15 +1,14 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const fs = require('fs');
+const fs = require('fs/promises');
 const minimatch = require('minimatch');
-const os = require('os')
+const os = require('os');
 const semver = require('semver');
-const spawnAsync = require('@expo/spawn-async');
 const tmp = require('tmp');
 const pLimit = require('p-limit');
 
 import { BufferUtils, Document, FileUtils, ImageUtils, Logger, TextureChannel, Transform, vec2 } from '@gltf-transform/core';
 import { TextureBasisu } from '@gltf-transform/extensions';
-import { commandExistsSync, formatBytes, getTextureChannels, getTextureSlots, spawnSync } from '../util';
+import { commandExists, formatBytes, getTextureChannels, getTextureSlots, spawnAsync } from '../util';
 
 tmp.setGracefulCleanup();
 
@@ -109,7 +108,7 @@ export const toktx = function (options: ETC1SOptions | UASTCOptions): Transform 
 		const logger = doc.getLogger();
 
 		// Confirm recent version of KTX-Software is installed.
-		checkKTXSoftware(logger);
+		await checkKTXSoftware(logger);
 
 		const basisuExtension = doc.createExtension(TextureBasisu).setRequired(true);
 
@@ -160,7 +159,7 @@ export const toktx = function (options: ETC1SOptions | UASTCOptions): Transform 
 				const outPath = tmp.tmpNameSync({postfix: '.ktx2'});
 
 				const inBytes = image.byteLength;
-				fs.writeFileSync(inPath, Buffer.from(image));
+				await fs.writeFile(inPath, Buffer.from(image));
 
 				const params = [
 					...createParams(slots, channels, size, logger, options),
@@ -334,12 +333,12 @@ function createParams(
 	return params;
 }
 
-function checkKTXSoftware(logger: Logger): void {
-	if (!commandExistsSync('toktx') && !process.env.CI) {
+async function checkKTXSoftware(logger: Logger): Promise<void> {
+	if (!await commandExists('toktx') && !process.env.CI) {
 		throw new Error('Command "toktx" not found. Please install KTX-Software, from:\n\nhttps://github.com/KhronosGroup/KTX-Software');
 	}
 
-	const {status, stdout, stderr} = spawnSync('toktx', ['--version'], {encoding: 'utf-8'});
+	const {status, stdout, stderr} = await spawnAsync('toktx', ['--version'], {encoding: 'utf-8'});
 
 	const version = ((stdout || stderr) as string)
 		.replace(/toktx\s+/, '').replace(/~\d+/, '').trim();

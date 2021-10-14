@@ -1,10 +1,10 @@
 require('source-map-support').install();
 
-import fs from 'fs';
+import fs from 'fs/promises';
 import test from 'tape';
 import { Document, Logger, TextureChannel, vec2 } from '@gltf-transform/core';
 import { MaterialsClearcoat } from '@gltf-transform/extensions';
-import { Mode, mockCommandExistsSync, mockSpawnSync, toktx } from '../';
+import { Mode, mockCommandExists, mockSpawnAsync, toktx } from '../';
 
 const { R, G } = TextureChannel;
 
@@ -70,16 +70,16 @@ async function getParams(
 	}
 
 	let actualParams: string[];
-	mockSpawnSync((_, params: string[]) => {
+	mockSpawnAsync(async (_, params: string[]) => {
 		// Mock `toktx` version check.
 		if (params.join() === '--version') return {status: 0, stdout: 'v4.0.0'};
 
 		// Mock `toktx` compression.
 		actualParams = params;
-		fs.writeFileSync(params[params.length - 2], Buffer.from(new ArrayBuffer(8)));
+		await fs.writeFile(params[params.length - 2], Buffer.from(new ArrayBuffer(8)));
 		return {status: 0};
 	});
-	mockCommandExistsSync(() => true);
+	mockCommandExists(() => Promise.resolve(true));
 
 	await doc.transform(toktx(options));
 
