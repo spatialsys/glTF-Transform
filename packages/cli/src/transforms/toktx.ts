@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const fs = require('fs');
 const minimatch = require('minimatch');
+const os = require('os')
 const semver = require('semver');
 const spawnAsync = require('@expo/spawn-async');
 const tmp = require('tmp');
@@ -50,6 +51,7 @@ interface GlobalOptions {
 	filter?: string;
 	filterScale?: number;
 	powerOfTwo?: boolean;
+	jobs?: number;
 }
 
 export interface ETC1SOptions extends GlobalOptions {
@@ -76,6 +78,7 @@ const GLOBAL_DEFAULTS = {
 	filterScale: 1,
 	powerOfTwo: false,
 	slots: '*',
+	jobs: os.cpus().length / 2
 };
 
 export const ETC1S_DEFAULTS = {
@@ -112,7 +115,7 @@ export const toktx = function (options: ETC1SOptions | UASTCOptions): Transform 
 
 		let numCompressed = 0;
 
-		const limit = pLimit(8);
+		const limit = pLimit(options.jobs!);
 
 		const promises = doc
 			.getRoot()
@@ -236,7 +239,12 @@ function createParams(
 		options: ETC1SOptions | UASTCOptions): (string|number)[] {
 	const params: (string|number)[] = [];
 	params.push('--genmipmap');
-	if (options.filter !== GLOBAL_DEFAULTS.filter) params.push('--filter', options.filter!);
+	if (options.jobs !== GLOBAL_DEFAULTS.jobs) {
+		params.push('--jobs', options.jobs!);
+	}
+	if (options.filter !== GLOBAL_DEFAULTS.filter) {
+		params.push('--filter', options.filter!);
+	}
 	if (options.filterScale !== GLOBAL_DEFAULTS.filterScale) {
 		params.push('--fscale', options.filterScale!);
 	}
