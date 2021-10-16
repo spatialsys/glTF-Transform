@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const { spawnAsync: _spawnAsync } = require('@expo/spawn-async');
+import _spawnAsync, { SpawnOptions, SpawnPromise, SpawnResult } from '@expo/spawn-async';
 
 import _commandExists from 'command-exists';
 import { Document, FileUtils, Logger, NodeIO, Texture, TextureLink, Transform } from '@gltf-transform/core';
@@ -9,7 +9,7 @@ import { Document, FileUtils, Logger, NodeIO, Texture, TextureLink, Transform } 
 export let spawnAsync = _spawnAsync;
 export let commandExists = _commandExists;
 
-export function mockSpawnAsync (_spawnAsync: unknown): void {
+export function mockSpawnAsync (_spawnAsync: (command: string, args?: readonly string[] | undefined, options?: SpawnOptions | undefined) => SpawnPromise<SpawnResult>): void {
 	spawnAsync = _spawnAsync;
 }
 

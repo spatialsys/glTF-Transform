@@ -9,6 +9,7 @@ const pLimit = require('p-limit');
 import { BufferUtils, Document, FileUtils, ImageUtils, Logger, TextureChannel, Transform, vec2 } from '@gltf-transform/core';
 import { TextureBasisu } from '@gltf-transform/extensions';
 import { commandExists, formatBytes, getTextureChannels, getTextureSlots, spawnAsync } from '../util';
+import { SpawnResult } from '@expo/spawn-async';
 
 tmp.setGracefulCleanup();
 
@@ -169,14 +170,14 @@ export const toktx = function (options: ETC1SOptions | UASTCOptions): Transform 
 				logger.debug(`• toktx ${params.join(' ')}`);
 
 				// COMPRESS: Run `toktx` CLI tool.
-				let result;
+				let result : SpawnResult;
 				try {
 					const toktx = spawnAsync('toktx', params);
 					result = await toktx;
 				}
 				catch(e:unknown){
 					// The error object also has the same properties as the result object
-					result = e;
+					result = e as SpawnResult;
 				}
 
 				const {
@@ -238,9 +239,6 @@ function createParams(
 		options: ETC1SOptions | UASTCOptions): (string|number)[] {
 	const params: (string|number)[] = [];
 	params.push('--genmipmap');
-	if (options.jobs !== GLOBAL_DEFAULTS.jobs) {
-		params.push('--jobs', options.jobs!);
-	}
 	if (options.filter !== GLOBAL_DEFAULTS.filter) {
 		params.push('--filter', options.filter!);
 	}
@@ -338,7 +336,7 @@ async function checkKTXSoftware(logger: Logger): Promise<void> {
 		throw new Error('Command "toktx" not found. Please install KTX-Software, from:\n\nhttps://github.com/KhronosGroup/KTX-Software');
 	}
 
-	const {status, stdout, stderr} = await spawnAsync('toktx', ['--version'], {encoding: 'utf-8'});
+	const {status, stdout, stderr} = await spawnAsync('toktx', ['--version']);
 
 	const version = ((stdout || stderr) as string)
 		.replace(/toktx\s+/, '').replace(/~\d+/, '').trim();
