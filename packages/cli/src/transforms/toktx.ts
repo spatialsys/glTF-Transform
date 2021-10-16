@@ -176,6 +176,9 @@ export const toktx = function (options: ETC1SOptions | UASTCOptions): Transform 
 					if (process.env.TOKTX_PATH) {
 						toktxExecName = process.env.TOKTX_PATH;
 					}
+					console.log("xxx" + toktxExecName);
+					console.log(params);
+
 					const toktx = spawnAsync(toktxExecName, params);
 					result = await toktx;
 				}
