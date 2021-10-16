@@ -174,7 +174,12 @@ export const toktx = function (options: ETC1SOptions | UASTCOptions): Transform 
 
 				// COMPRESS: Run `toktx` CLI tool.
 				// eslint-disable-next-line @typescript-eslint/no-unused-vars
-				const [status, stdout, stderr] = await waitExit(spawn('toktx', params));
+
+				let toktxExecName = 'toktx';
+				if (process.env.TOKTX_PATH) {
+					toktxExecName = process.env.TOKTX_PATH;
+				}
+				const [status, stdout, stderr] = await waitExit(spawn(toktxExecName, params));
 
 				if (status !== 0) {
 					logger.error(`${prefix}: Failed → \n\n${stderr.toString()}`);
