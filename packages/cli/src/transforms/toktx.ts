@@ -172,7 +172,11 @@ export const toktx = function (options: ETC1SOptions | UASTCOptions): Transform 
 				// COMPRESS: Run `toktx` CLI tool.
 				let result : SpawnResult;
 				try {
-					const toktx = spawnAsync('toktx', params);
+					let toktxExecName = 'toktx';
+					if (process.env.TOKTX_PATH) {
+						toktxExecName = process.env.TOKTX_PATH;
+					}
+					const toktx = spawnAsync(toktxExecName, params);
 					result = await toktx;
 				}
 				catch(e:unknown){
