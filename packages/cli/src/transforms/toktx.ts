@@ -292,7 +292,8 @@ function createParams(
 		}
 
 		if (slots.find((slot) => minimatch(slot, '*normal*', {nocase: true}))) {
-			params.push('--normal_map');
+			// TODO(DEV-7391): Figure out why some models look really bad with compressed normal maps.
+			params.push('--normal_map_HACK_EXCLUDE');
 		}
 	}
 
