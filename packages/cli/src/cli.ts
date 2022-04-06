@@ -811,6 +811,11 @@ normal maps and ETC1S for other textures, for example.`.trim()),
 		'Spawns up to num_jobs instances of toktx',
 		{validator: program.NUMBER, default: ETC1S_DEFAULTS.jobs}
 	)
+	.option(
+		'--ktx-threads <num_threads>',
+		'Number of threads used by each toktx instance',
+		{validator: program.NUMBER, default: ETC1S_DEFAULTS.ktxThreads}
+	)
 	.action(({args, options, logger}) =>
 		Session.create(io, logger, args.input, args.output)
 			.transform(toktx({mode: Mode.ETC1S, ...options}))
@@ -930,6 +935,11 @@ for textures where the quality is sufficient.`.trim()),
 		'--jobs <num_jobs>',
 		'Spawns up to num_jobs instances of toktx',
 		{validator: program.NUMBER, default: UASTC_DEFAULTS.jobs}
+	)
+	.option(
+		'--ktx-threads <num_threads>',
+		'Number of threads used by each toktx instance',
+		{validator: program.NUMBER, default: UASTC_DEFAULTS.ktxThreads}
 	)
 	.action(({args, options, logger}) =>
 		Session.create(io, logger, args.input, args.output)

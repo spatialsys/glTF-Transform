@@ -52,6 +52,7 @@ interface GlobalOptions {
 	filterScale?: number;
 	powerOfTwo?: boolean;
 	jobs?: number;
+	ktxThreads?: number;
 }
 
 export interface ETC1SOptions extends GlobalOptions {
@@ -79,6 +80,7 @@ const GLOBAL_DEFAULTS = {
 	powerOfTwo: false,
 	slots: '*',
 	jobs: os.cpus().length / 2,
+	ktxThreads: 0,
 };
 
 export const ETC1S_DEFAULTS = {
@@ -310,8 +312,8 @@ function createParams(
 	}
 
 	// See https://github.com/donmccurdy/glTF-Transform/pull/389/commits/c4935a7348a401587b8d3bf1319bc8481d90ac8e#r733235207
-	if (options.jobs && options.jobs > 1 && numTextures > 1) {
-		params.push('--threads', '1');
+	if (options.ktxThreads && options.ktxThreads > 0) {
+		params.push('--threads', options.ktxThreads);
 	}
 
 	return params;
