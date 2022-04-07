@@ -316,12 +316,6 @@ function createParams(
 		params.push('--resize', `${width}x${height}`);
 	}
 
-	if (options.jobs && options.jobs > 1 && numTextures > 1) {
-		// See: https://github.com/donmccurdy/glTF-Transform/pull/389#issuecomment-1089842185
-		const threads = Math.max(2, Math.min(NUM_CPUS, (3 * NUM_CPUS) / numTextures));
-		params.push('--threads', threads);
-	}
-
 	return params;
 }
 
